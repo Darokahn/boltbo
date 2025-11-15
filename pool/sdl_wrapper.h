@@ -17,10 +17,10 @@ struct screenPackage {
 
 typedef SDL_Event event;
 
-struct screenPackage initVideo(int width, int height, int initialTextureCapacity);
+struct screenPackage initVideo(int width, int height, int initialTextureCapacity, int windowScale);
 void destroyVideo(struct screenPackage screen);
 
-void setPixel(struct screenPackage screen, point p, pixel_t c);
+void setPixel(struct screenPackage screen, point_t p, pixel_t c);
 void updateScreen(struct screenPackage screen);
 void clearScreen(struct screenPackage screen, pixel_t c);
 

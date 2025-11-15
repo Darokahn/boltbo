@@ -7,15 +7,21 @@
 
 pixel_t black = {.r=0, .g=0, .b=0};
 struct screenPackage s;
+SDL_Event e;
 
 uint32_t nextTick;
 
 void startIO() {
-    s = initVideo(SCREENWIDTH, SCREENHEIGHT, 64);
+    s = initVideo(SCREENWIDTH, SCREENHEIGHT, 64, 4);
     nextTick = SDL_GetTicks() + (1000 / FPS);
 }
 
 void updateIO() {
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            exit(0);
+        }
+    }
     updateScreen(s);
     clearScreen(s, black);
 }
@@ -37,7 +43,7 @@ SDL_Texture* getTexture(image_t* image) {
                 SDL_PIXELFORMAT_ABGR8888
                 );
         if (surface == NULL) {
-            printf("getTexture: %s\n", SDL_GetError());
+            fprintf(stderr, "getTexture: %s\n", SDL_GetError());
             return NULL;
         }
         s.textures[image->id] = SDL_CreateTextureFromSurface(s.renderer, surface);
@@ -52,14 +58,15 @@ SDL_Texture* getTexture(image_t* image) {
 
 void drawObject(interface drawable drawable) {
     gameObject_t* object = drawable.object;
-    spriteTrait* spriteSheet = drawable.sprites;
-    image_t* image = spriteSheet->images[spriteSheet->currentImage];
+    spriteSetTrait* spriteSet = drawable.sprites;
+    spriteSheet_t* spriteSheet = &spriteSet->spriteSheets[spriteSet->currentSheet];
+    image_t* image = getFrame(drawable);
     SDL_Texture* texture = getTexture(image);
     SDL_Rect destination = (SDL_Rect) {
         .x = (int)object->x,
         .y = (int)object->y,
-        .w = image->width * spriteSheet->xScale,
-        .h = image->height * spriteSheet->yScale,
+        .w = spriteSheet->width * spriteSheet->xScale,
+        .h = spriteSheet->height * spriteSheet->yScale,
     };
     SDL_RenderCopy(s.renderer, texture, NULL, &destination);
 }

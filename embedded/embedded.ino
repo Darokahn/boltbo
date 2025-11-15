@@ -1,5 +1,7 @@
 #include <TFT_eSPI.h>
 
+#define ALPHAIGNORETHRESHOLD 10
+
 #define FULLLCDWIDTH 320
 #define FULLLCDHEIGHT 240
 
@@ -43,8 +45,10 @@ extern "C" void startIO() {
     tft.fillScreen(TFT_BLACK);
     nextTick = millis() + frameInterval;
 }
+
 extern "C" void updateIO() {
     tftSprite.pushSprite((FULLLCDWIDTH - LCDWIDTH) / 2, (FULLLCDHEIGHT - LCDHEIGHT) / 2);
+    tftSprite.fillSprite(TFT_BLACK);
 }
 
 extern "C" void* mallocDMA(size_t size) {
@@ -53,23 +57,34 @@ extern "C" void* mallocDMA(size_t size) {
 
 extern "C" void drawObject(interface drawable t) {
     gameObject_t* object = t.object;
-    spriteTrait* spriteSheet = t.sprites;
+    spriteSetTrait* spriteSet = t.sprites;
+    spriteSheet_t* spriteSheet = &spriteSet->spriteSheets[spriteSet->currentSheet];
     image_t* image = spriteSheet->images[spriteSheet->currentImage];
     rect_t destination = (rect_t) {
         .x = (int)object->x,
         .y = (int)object->y,
-        .width = image->width * spriteSheet->xScale,
-        .height = image->height * spriteSheet->yScale,
+        .width = spriteSheet->width,
+        .height = spriteSheet->height,
     };
+    float xStride = (float)image->width / destination.width;
+    float yStride = (float)image->height / destination.height;
+    int pixelSize = sizeof(pixel_t);
+    int rowSize = image->width * pixelSize;
     uint8_t* bytes = (uint8_t*) image->pixels;
     for (int y = 0; y < destination.height; y++) {
         for (int x = 0; x < destination.width; x++) {
+            int column = x * xStride;
+            int row = y * yStride;
+            bytes = (uint8_t*)image->pixels + (row * rowSize) + (column * pixelSize);
             uint8_t red = *(bytes++) * 31 / 255;
             uint8_t green = *(bytes++) * 63 / 255;
             uint8_t blue = *(bytes++) * 31 / 255;
-            uint8_t alpha = *(bytes++); // ignored
+            uint8_t alpha = *(bytes++);
+            if (alpha <= ALPHAIGNORETHRESHOLD) continue;
             uint16_t color = red << 11 | green << 5 | blue;
-            tftSprite.drawPixel(x + destination.x, y + destination.y, color);
+            int drawX = x + destination.x;
+            int drawY = y + destination.y;
+            tftSprite.drawPixel(drawX, drawY, color);
         }
     }
 }

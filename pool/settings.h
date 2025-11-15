@@ -11,5 +11,6 @@
 #define AIRRESISTANCE 0.99;
 
 #define ENEMYMAX 16
-
-
+#define TILEMAX 16
+#define DRAWINGMAX 16
+#define PHYSICSMAX 16

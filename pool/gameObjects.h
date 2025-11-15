@@ -7,9 +7,9 @@
 #define interface struct
 
 typedef struct {
-    int x;
-    int y;
-} point;
+    int16_t x;
+    int16_t y;
+} point_t;
 
 typedef struct {
     int16_t x;
@@ -47,7 +47,16 @@ typedef struct {
     uint16_t currentImage;
     uint16_t xScale;
     uint16_t yScale;
-} spriteTrait;
+    uint16_t width;
+    uint16_t height;
+    uint16_t ticksPerFrame;
+} spriteSheet_t;
+
+typedef struct {
+    spriteSheet_t* spriteSheets;
+    uint16_t sheetCount;
+    uint16_t currentSheet;
+} spriteSetTrait;
 
 typedef struct {
     float xVelocity;
@@ -63,22 +72,21 @@ typedef struct {
     // TODO
 } audioTrait;
 
+enum collisionType {
+    RECT,
+    CIRCLE,
+};
+
 struct collisionTraitGeneric {
     uint16_t collisionType;
     void* collisionData; // checks out space in its gameObject
 };
 typedef struct collisionTraitGeneric collisionTraitGeneric;
 
-enum collisionType {
-    RECT,
-    CIRCLE,
-};
-
 typedef struct {
     uint16_t collisionType;
     rect_t* boundingBox;
 } collisionTraitRect;
-
 
 typedef union {
     collisionTraitGeneric generic;
@@ -91,16 +99,21 @@ typedef union {
 
 interface drawable {
     gameObject_t* object;
-    spriteTrait* sprites;
+    spriteSetTrait* sprites;
 };
+#define toDrawable(value) ((interface drawable) {(value).object, &(value).spriteSet})
+
 
 void drawObject(interface drawable t);
 void nextFrame(interface drawable t);
+void setSheet(interface drawable t, int sheet);
+image_t* getFrame(interface drawable t);
 
 interface physics {
     gameObject_t* object;
     physicsTrait* physics;
 };
+#define toPhysics(value) ((interface physics) {(value).object, &(value).physics})
 
 void applyGravity(interface physics t);
 void accelerate(interface physics t, float x, float y);
@@ -117,24 +130,34 @@ interface collision {
     gameObject_t* object;
     collisionTrait* collision;
 };
+#define toCollision(value) ((interface collision) {(value).object, &(value).collision})
 
-void getCollisions(interface collision t, interface collision** others);
-void collidesWith(interface collision t, interface collision* other);
+void getCollisions(interface collision t, interface collision* others, int numOthers);
+bool collidesWith(interface collision t, interface collision other);
+
 
 interface physicsCollision {
     gameObject_t* object;
     collisionTrait* collision;
     physicsTrait* physics;
 };
+#define toPhysicsCollision(value) ((interface physicsCollision) {(value).object, &(value).collision, &(value).physics})
 
-void moveWithCollisions(interface physicsCollision t, interface collision* others);
+void moveWithCollisions(interface physicsCollision t, interface physicsCollision* others, int numOthers);
 
 typedef struct {
     gameObject_t* object;
     collisionTrait collision;
     physicsTrait physics;
-    spriteTrait spriteSheet;
+} terrain_t;
+
+typedef struct {
+    gameObject_t* object;
+    collisionTrait collision;
+    physicsTrait physics;
+    spriteSetTrait spriteSet;
     audioTrait audio;
 } entity_t;
 
-entity_t initEntity(float x, float y, int width, int height, int spriteSheetIndex, int spriteCount, image_t** imageList, float inertia, rect_t boundingBox);
+terrain_t initTerrain(float x, float y, int width, int height, rect_t boundingBox);
+entity_t initEntity(float x, float y, int width, int height, int* spriteSheetIndices, int* frameCounts, int sheetCount, image_t** imageList, float inertia, rect_t boundingBox);

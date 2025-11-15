@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <math.h>
 
-struct screenPackage initVideo(int width, int height, int initialTextureCapacity) {
+struct screenPackage initVideo(int width, int height, int initialTextureCapacity, int windowScale) {
     struct {int width; int height;} screenSize = {width, height};
     if ( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
         perror( "SDL failed" );
@@ -14,7 +14,7 @@ struct screenPackage initVideo(int width, int height, int initialTextureCapacity
     screen.width = screenSize.width;
     screen.height = screenSize.height;
 
-    screen.window = SDL_CreateWindow( "Video", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenSize.width * 3, screenSize.height * 3, SDL_WINDOW_SHOWN );
+    screen.window = SDL_CreateWindow( "Video", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenSize.width * windowScale, screenSize.height * windowScale, SDL_WINDOW_SHOWN );
     if ( screen.window == NULL ) {
         printf("%s\n", SDL_GetError());
     }
@@ -47,7 +47,7 @@ void clearScreen(struct screenPackage screen, pixel_t c) {
     SDL_RenderClear(screen.renderer);
 }
 
-void setPixel(struct screenPackage screen, point p, pixel_t c) {
+void setPixel(struct screenPackage screen, point_t p, pixel_t c) {
     SDL_SetRenderDrawColor(screen.renderer, c.r, c.g, c.b, c.a);
     SDL_RenderDrawPoint(screen.renderer, p.x, p.y);
 }
