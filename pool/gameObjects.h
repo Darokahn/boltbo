@@ -125,6 +125,7 @@ interface audio {
     gameObject_t* object;
     audioTrait* audio;
 };
+#define toAudio(value) ((interface audio) {(value).object, &(value).audio})
 
 interface collision {
     gameObject_t* object;
@@ -149,15 +150,8 @@ typedef struct {
     gameObject_t* object;
     collisionTrait collision;
     physicsTrait physics;
-} terrain_t;
-
-typedef struct {
-    gameObject_t* object;
-    collisionTrait collision;
-    physicsTrait physics;
     spriteSetTrait spriteSet;
     audioTrait audio;
 } entity_t;
 
-terrain_t initTerrain(float x, float y, int width, int height, rect_t boundingBox);
 entity_t initEntity(float x, float y, int width, int height, int* spriteSheetIndices, int* frameCounts, int sheetCount, image_t** imageList, float inertia, rect_t boundingBox);

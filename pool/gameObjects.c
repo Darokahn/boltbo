@@ -53,9 +53,18 @@ bool rectsCollide(rect_t r1, rect_t r2) {
         if (i & 2) y += r1.height;
         collides |= (x >= r2.x && x <= r2.x + r2.width) && (y >= r2.y && y <= r2.y + r2.height);
     }
+    for (int i = 0; i < 4; i++) {
+        int x = r2.x;
+        int y = r2.y;
+        if (i & 1) x += r2.width;
+        if (i & 2) y += r2.height;
+        collides |= (x >= r1.x && x <= r1.x + r1.width) && (y >= r1.y && y <= r1.y + r1.height);
+    }
     return collides;
 }
 
+void reportAllCollisions(interface collision* all) {
+}
 
 void getCollisions(interface collision this, interface collision* others, int numOthers) {
 }
@@ -88,16 +97,39 @@ void moveWithCollisions(interface physicsCollision this, interface physicsCollis
     float oldY = this.object->y;
     move((interface physics) {this.object, this.physics});
     applyAirResistance((interface physics) {this.object, this.physics});
+    float newX = this.object->x;
+    float newY = this.object->y;
+    bool collides;
+    bool collidesX = false;
+    bool collidesY = false;
+    if (newX == oldX && newY == oldY) return;
     for (int i = 0; i < numOthers; i++) {
+        this.object->x = oldX;
+        this.object->y = oldY;
         interface physicsCollision other = others[i];
         if (other.object->id == this.object->id) continue;
-        printf("%d\n", other.object->id);
-        bool collides = collidesWith((interface collision) {this.object, this.collision}, (interface collision) {other.object, other.collision});
+        this.object->x = newX;
+        collides = collidesWith((interface collision) {this.object, this.collision}, (interface collision) {other.object, other.collision});
         if (collides) {
-            this.object->x = oldX;
-            this.object->y = oldY;
+            collidesX = true;
+        }
+        this.object->x = oldX;
+        this.object->y = newY;
+        collides = collidesWith((interface collision) {this.object, this.collision}, (interface collision) {other.object, other.collision});
+        if (collides) {
+            collidesY = true;
         }
     }
+    if (collidesX) {
+        this.object->x = oldX;
+        this.physics->xVelocity *= -1;
+    }
+    else this.object->x = newX;
+    if (collidesY) {
+        this.object->y = oldY;
+        this.physics->yVelocity *= -1;
+    }
+    else this.object->y = newY;
 }
 
 entity_t initEntity(float x, float y, int width, int height, int* spriteSheetIndices, int* frameCounts, int sheetCount, image_t** imageList, float inertia, rect_t boundingBox) {
@@ -152,38 +184,4 @@ entity_t initEntity(float x, float y, int width, int height, int* spriteSheetInd
     }
     *entity.collision.rect.boundingBox = boundingBox;
     return entity;
-}
-
-terrain_t initTerrain(float x, float y, int width, int height, rect_t boundingBox) {
-    static int id = 0;
-    terrain_t terrain;
-    int size = sizeof(gameObject_t);
-    size = align(size, __alignof(rect_t));
-    size += sizeof(rect_t);
-    terrain.object = malloc(size);
-    *terrain.object = (gameObject_t) {
-        .x = x,
-        .y = y,
-        .id = id++,
-    };
-    terrain.physics = (physicsTrait) {
-        .xVelocity = 0,
-        .yVelocity = 0,
-        .respectsGravity = true,
-        .gravityOverride = 0,
-        .respectsAirResistance = true,
-        .airResistanceOverride = 0,
-        .inertia = 0,
-    };
-    uint8_t* ptr = (void*) terrain.object;
-    ptr += sizeof(gameObject_t);
-    ptr = alignptr(ptr, __alignof(rect_t));
-    terrain.collision = (collisionTrait) {.rect = 
-        {
-            .collisionType=RECT,
-            .boundingBox=(rect_t*)ptr
-        }
-    };
-    *terrain.collision.rect.boundingBox = boundingBox;
-    return terrain;
 }

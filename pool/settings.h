@@ -7,8 +7,8 @@
 #define SCREENWIDTH 320
 #define SCREENHEIGHT 240
 
-#define GRAVITY 0.1;
-#define AIRRESISTANCE 0.99;
+#define GRAVITY 0.1
+#define AIRRESISTANCE 0.99
 
 #define ENEMYMAX 16
 #define TILEMAX 16

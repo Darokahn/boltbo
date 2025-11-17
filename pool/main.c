@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/param.h>
 
 #include "gameObjects.h"
 #include "iofuncs.h"
@@ -13,7 +14,8 @@ int main() {
     loadImages(imageList, sizeof(imageList) / sizeof(imageList[0]), imageBlob);
     
     entity_t background = initEntity(0, 0, 320, 240,  (int[1]) {0}, (int[1]) {1}, 1, imageList, 0, (rect_t) {});
-    entity_t player = initEntity(0, 0, 48, 48,  (int[2]) {3, 4}, (int[2]) {1, 5}, 2, imageList, 1, (rect_t) {48, 48});
+    entity_t overlay = initEntity(0, 0, 320, 240,  (int[1]) {1}, (int[1]) {1}, 1, imageList, 0, (rect_t) {});
+    entity_t player = initEntity(100, 100, 48, 48,  (int[2]) {2, 3}, (int[2]) {1, 5}, 2, imageList, 1, (rect_t) {0, 0, 48, 48});
     setSheet(toDrawable(player), 1);
     entity_t enemies[ENEMYMAX];
     int enemyCount = 0;
@@ -22,7 +24,7 @@ int main() {
     int tileCount = 0;
 
     loadStage(points, pointCount, tiles, TILEMAX, imageList);
-    tileCount = TILEMAX;
+    tileCount = MIN(TILEMAX, pointCount);
 
     interface drawable drawnEntities[DRAWINGMAX];
     int drawnCount = 0;
@@ -39,10 +41,11 @@ int main() {
     drawnEntities[0] = toDrawable(player);
     physicsEntities[0] = toPhysicsCollision(player);
     
-    accelerate(toPhysics(player), 1, 1);
+    accelerate(toPhysics(player), 2, -3);
     int i = 0;
     while (++i) {
-        drawObject((interface drawable) {background.object, &background.spriteSet});
+        drawObject(toDrawable(background));
+        drawObject(toDrawable(overlay));
         for (int i = 0; i < drawnCount; i++) {
             drawObject(drawnEntities[i]);
             nextFrame(drawnEntities[i]);
