@@ -9,12 +9,12 @@
 extern int pointCount;
 
 int main() {
-    startIO();
+    startIO(320, 240, FPS);
     image_t* imageList[16];
     loadImages(imageList, sizeof(imageList) / sizeof(imageList[0]), imageBlob);
     
     entity_t background = initEntity(0, 0, 320, 240,  (int[1]) {0}, (int[1]) {1}, 1, imageList, 0, (rect_t) {});
-    entity_t overlay = initEntity(0, 0, 320, 240,  (int[1]) {1}, (int[1]) {1}, 1, imageList, 0, (rect_t) {});
+    entity_t overlay = initEntity(0, 0, 640, 240,  (int[1]) {1}, (int[1]) {1}, 1, imageList, 0, (rect_t) {});
     entity_t player = initEntity(100, 100, 48, 48,  (int[2]) {2, 3}, (int[2]) {1, 5}, 2, imageList, 1, (rect_t) {0, 0, 48, 48});
     setSheet(toDrawable(player), 1);
     entity_t enemies[ENEMYMAX];
@@ -29,17 +29,17 @@ int main() {
     interface drawable drawnEntities[DRAWINGMAX];
     int drawnCount = 0;
 
-    interface physicsCollision physicsEntities[PHYSICSMAX];
+    interface physics physicsEntities[PHYSICSMAX];
     int physicsCount = 0;
 
     for (int i = 0; i < tileCount; i++) {
-        physicsEntities[i] = toPhysicsCollision(tiles[i]);
+        physicsEntities[i] = toPhysics(tiles[i]);
         drawnEntities[i] = toDrawable(tiles[i]);
         drawnCount++;
         physicsCount++;
     }
     drawnEntities[0] = toDrawable(player);
-    physicsEntities[0] = toPhysicsCollision(player);
+    physicsEntities[0] = toPhysics(player);
     
     accelerate(toPhysics(player), 2, -3);
     int i = 0;
@@ -51,7 +51,8 @@ int main() {
             nextFrame(drawnEntities[i]);
         }
         for (int i = 0; i < physicsCount; i++) {
-            moveWithCollisions(physicsEntities[i], physicsEntities, physicsCount);
+            move(physicsEntities[i]);
+            //moveWithCollisions(physicsEntities[i], physicsEntities, physicsCount);
         }
         updateIO();
         awaitNextTick();

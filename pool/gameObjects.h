@@ -27,8 +27,8 @@ typedef struct {
 
 typedef struct {
     int16_t id;
-    int16_t width;
-    int16_t height;
+    uint16_t width;
+    uint16_t height;
     char name[NAMESIZE];
     pixel_t pixels[];
 } image_t;
@@ -133,6 +133,7 @@ interface collision {
 };
 #define toCollision(value) ((interface collision) {(value).object, &(value).collision})
 
+bool rectsCollide(rect_t r1, rect_t r2);
 void getCollisions(interface collision t, interface collision* others, int numOthers);
 bool collidesWith(interface collision t, interface collision other);
 

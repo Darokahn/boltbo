@@ -21,7 +21,7 @@ image_t* getFrame(interface drawable this) {
 }
 
 void applyGravity(interface physics this) {
-    int gravity = GRAVITY;
+    float gravity = GRAVITY;
     if (this.physics->gravityOverride) gravity = this.physics->gravityOverride;
     accelerate(this, 0, gravity);
 }

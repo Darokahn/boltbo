@@ -11,8 +11,8 @@ SDL_Event e;
 
 uint32_t nextTick;
 
-void startIO() {
-    s = initVideo(SCREENWIDTH, SCREENHEIGHT, 64, 4);
+void startIO(int screenWidth, int screenHeight, int fps) {
+    s = initVideo(SCREENWIDTH, SCREENHEIGHT, 64, 3);
     nextTick = SDL_GetTicks() + (1000 / FPS);
 }
 

@@ -36,7 +36,6 @@ def compileImages(files):
             scale = spriteWidth / width
         width, height = (int(width * scale), int(height * scale))
         img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
-        expectedDifference = 2 + 2 + 2 + 256 + (width * height * 4)
         imageBlob.extend(intToBytes(idnum, 2))
         imageBlob.extend(intToBytes(width, 2))
         imageBlob.extend(intToBytes(height, 2))

@@ -38,7 +38,7 @@ void awaitNextTick() {
 }
 
 extern "C" int main();
-extern "C" void startIO() {
+extern "C" void startIO(int screenWidth, int screenHeight, int fps) {
     tft.init();
     tft.setRotation(1);
     tftSprite.createSprite(LCDWIDTH, LCDHEIGHT);
@@ -55,6 +55,7 @@ extern "C" void* mallocDMA(size_t size) {
     return heap_caps_malloc(size, MALLOC_CAP_DMA);
 }
 
+rect_t screenRect = (rect_t) {0, 0, LCDWIDTH, LCDHEIGHT};
 extern "C" void drawObject(interface drawable t) {
     gameObject_t* object = t.object;
     spriteSetTrait* spriteSet = t.sprites;
@@ -66,6 +67,7 @@ extern "C" void drawObject(interface drawable t) {
         .width = spriteSheet->width,
         .height = spriteSheet->height,
     };
+    if (!rectsCollide(destination, screenRect)) return;
     float xStride = (float)image->width / destination.width;
     float yStride = (float)image->height / destination.height;
     int pixelSize = sizeof(pixel_t);

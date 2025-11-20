@@ -4,7 +4,7 @@
 #include "gameObjects.h"
 #include "inputs.h"
 
-void startIO();
+void startIO(int screenWidth, int screenHeight, int fps);
 void updateIO();
 
 void pollInputs(uint8_t* inputBuffer);
