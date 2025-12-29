@@ -52,6 +52,7 @@ def compileImages(files):
                 a = next(bufferIter)
             color = bytearray([r, g, b, a])
             imageBlob.extend(color)
+        imageBlob.extend(intToBytes(1, 2))
     imageBlob.extend(intToBytes(-1, 2))
     array = "const unsigned char imageBlob[] = {" + ", ".join((str(l) for l in imageBlob)) + "};"
     return array
@@ -106,4 +107,3 @@ def compileStage():
 
 print("#include \"gameObjects.h\"")
 print(compileImages(files))
-print(compileStage())

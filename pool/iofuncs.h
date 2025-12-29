@@ -7,5 +7,8 @@
 void startIO(int screenWidth, int screenHeight, int fps);
 void updateIO();
 
-void pollInputs(uint8_t* inputBuffer);
+void pollInputs(inputStruct_t* inputs);
 void awaitNextTick();
+void setBuzz(uint8_t);
+
+int getSeed();

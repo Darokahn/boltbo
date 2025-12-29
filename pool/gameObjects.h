@@ -30,6 +30,7 @@ typedef struct {
     uint16_t width;
     uint16_t height;
     char name[NAMESIZE];
+    bool cacheAllowed;
     pixel_t pixels[];
 } image_t;
 
@@ -45,8 +46,7 @@ typedef struct {
     image_t** images;
     uint16_t imageCount;
     uint16_t currentImage;
-    uint16_t xScale;
-    uint16_t yScale;
+    rect_t imageClip;
     uint16_t width;
     uint16_t height;
     uint16_t ticksPerFrame;
@@ -81,6 +81,7 @@ struct collisionTraitGeneric {
     uint16_t collisionType;
     void* collisionData; // checks out space in its gameObject
 };
+
 typedef struct collisionTraitGeneric collisionTraitGeneric;
 
 typedef struct {
@@ -103,9 +104,9 @@ interface drawable {
 };
 #define toDrawable(value) ((interface drawable) {(value).object, &(value).spriteSet})
 
-
 void drawObject(interface drawable t);
 void nextFrame(interface drawable t);
+void lastFrame(interface drawable t);
 void setSheet(interface drawable t, int sheet);
 image_t* getFrame(interface drawable t);
 

@@ -11,6 +11,12 @@ void nextFrame(interface drawable this) {
     sheet->currentImage %= sheet->imageCount;
 }
 
+void lastFrame(interface drawable this) {
+    spriteSheet_t* sheet = &this.sprites->spriteSheets[this.sprites->currentSheet];
+    sheet->currentImage--;
+    sheet->currentImage %= sheet->imageCount;
+}
+
 void setSheet(interface drawable t, int sheetIndex) {
     t.sprites->currentSheet = sheetIndex;
 }
@@ -72,10 +78,12 @@ void getCollisions(interface collision this, interface collision* others, int nu
 bool collidesWith(interface collision this, interface collision other) {
     collisionTraitGeneric c1 = this.collision->generic;
     collisionTraitGeneric c2 = other.collision->generic;
+    rect_t rect1;
+    rect_t rect2;
     switch (c1.collisionType) {
         case RECT:
-            rect_t rect1 = *this.collision->rect.boundingBox;
-            rect_t rect2 = *other.collision->rect.boundingBox;
+            rect1 = *this.collision->rect.boundingBox;
+            rect2 = *other.collision->rect.boundingBox;
             rect1.x = this.object->x;
             rect1.y = this.object->y;
             rect2.x = other.object->x;
@@ -175,8 +183,6 @@ entity_t initEntity(float x, float y, int width, int height, int* spriteSheetInd
         entity.spriteSet.spriteSheets[i] = (spriteSheet_t) {
             .images = imageList + sheetIndex,
             .imageCount = frameCount,
-            .xScale = 1,
-            .yScale = 1,
             .width = width,
             .height = height,
             .ticksPerFrame = 1

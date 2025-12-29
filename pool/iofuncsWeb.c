@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "settings.h"
 #include "gameObjects.h"
 #include "iofuncs.h"
@@ -41,6 +43,14 @@ EM_JS(void, _drawObject, (int x, int y, int width, int height, int xResolution, 
 
 EM_JS(void, _awaitNextTick, (), {
 });
+
+int getSeed() {
+    return time(NULL);
+}
+
+void pollInputs(inputStruct_t* input) {
+    return;
+}
 
 void startIO(int screenWidth, int screenHeight, int fps) {
     nextTick = getMillis() + (1000.0f / fps);

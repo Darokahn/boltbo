@@ -14,3 +14,7 @@
 #define TILEMAX 16
 #define DRAWINGMAX 16
 #define PHYSICSMAX 16
+
+#define AXISMAX 4096
+#define AXISMID 2048
+#define AXISMIN 0

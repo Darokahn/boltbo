@@ -1,5 +1,7 @@
 #include <TFT_eSPI.h>
 
+#include <Bonezegei_XPT2046.h>
+
 #define ALPHAIGNORETHRESHOLD 10
 
 #define FULLLCDWIDTH 320
@@ -8,9 +10,6 @@
 #define LCDWIDTH 265
 #define LCDHEIGHT 208
 
-#define SCRATCHWIDTH 480
-#define SCRATCHHEIGHT 360
-
 #define TFT_MISO 19
 #define TFT_MOSI 23
 #define TFT_SCLK 18
@@ -18,9 +17,19 @@
 #define TFT_DC    2  // Data Command control pin
 #define TFT_RST   4  // Reset pin (could connect to RST pin)
 
+#define BUZZER 25
+
+#define TS_CS 5
+
+#define VRX_PIN 33
+#define VRY_PIN 32
+#define SW_PIN1 26
+#define SW_PIN2 27
 
 TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite tftSprite = TFT_eSprite(&tft);
+
+Bonezegei_XPT2046 ts(5, -1);
 
 extern "C" {
     #include "gameObjects.h"
@@ -38,16 +47,8 @@ void awaitNextTick() {
 }
 
 extern "C" int main();
-extern "C" void startIO(int screenWidth, int screenHeight, int fps) {
-    tft.init();
-    tft.setRotation(1);
-    tftSprite.createSprite(LCDWIDTH, LCDHEIGHT);
-    tft.fillScreen(TFT_BLACK);
-    nextTick = millis() + frameInterval;
-}
-
 extern "C" void updateIO() {
-    tftSprite.pushSprite((FULLLCDWIDTH - LCDWIDTH) / 2, (FULLLCDHEIGHT - LCDHEIGHT) / 2);
+    tftSprite.pushSprite(0, 0);
     tftSprite.fillSprite(TFT_BLACK);
 }
 
@@ -91,34 +92,61 @@ extern "C" void drawObject(interface drawable t) {
     }
 }
 
-#define VRX_PIN 32
-#define VRY_PIN 33
-#define SW_PIN 25
+const int DEADZONE = 1000;         // Joystick deadzone threshold
 
-const int ADC_CENTER = 1880;       // Midpoint of 12-bit ADC
-const int DEADZONE  = 200;         // Joystick deadzone threshold
+extern "C" int getInput(int index) {
+    int vrx = -(analogRead(VRX_PIN) - AXISMID);
+    int vry = analogRead(VRY_PIN) - AXISMID;
+    int sw1  = digitalRead(SW_PIN1) == LOW;  // Active-low button
+    int sw2 = digitalRead(SW_PIN2) == LOW;
 
-extern "C" bool getInput(int index) {
-    int vrx = analogRead(VRX_PIN);
-    int vry = analogRead(VRY_PIN);
-    bool sw  = digitalRead(SW_PIN) == LOW;  // Active-low button
+    if (abs(vrx) < DEADZONE) vrx = 0;
+    if (abs(vry) < DEADZONE) vry = 0;
 
-    //machineLog("%d, %d\r\n", vrx, vry);
+    machineLog("%d, %d\r\n", vrx, vry);
 
     switch (index) {
         case 0: // UP
-            return vry < ADC_CENTER - DEADZONE;
+            return vrx;
         case 1: // RIGHT
-            return vrx > ADC_CENTER + DEADZONE;
-        case 2: // DOWN
-            return vry > ADC_CENTER + DEADZONE;
-        case 3: // LEFT
-            return vrx < ADC_CENTER - DEADZONE;
-        case 4: // SPACE / action button
-            return sw;
+            return vry;
+        case 2: // SPACE / action button
+            return sw1;
+        case 3:
+            return sw2;
     }
     return false;
 }
+
+void pollInputs(inputStruct_t* inputs) {
+    inputs->xAxis = getInput(0);
+    inputs->yAxis = getInput(1);
+    inputs->action1 = getInput(2);
+    inputs->action2 = getInput(3);
+}
+
+int getSeed() {
+    return esp_random();
+}
+
+extern "C" void startIO(int screenWidth, int screenHeight, int fps) {
+    ts.begin();
+    tft.init();
+    tft.setRotation(1);
+    tftSprite.createSprite(LCDWIDTH, LCDHEIGHT);
+    tft.fillScreen(TFT_BLACK);
+    nextTick = millis() + frameInterval;
+    pinMode(21, OUTPUT);
+    pinMode(SW_PIN1, INPUT_PULLUP);
+    pinMode(SW_PIN2, INPUT_PULLUP);
+    ledcAttach(BUZZER, 800, 8);
+    digitalWrite(21, HIGH);
+}
+
+extern "C" void setBuzz(uint8_t value) {
+    ledcWrite(BUZZER, value);
+}
+
 
 extern "C" int machineLog(const char* fmt, ...) {
     va_list args;
@@ -128,17 +156,10 @@ extern "C" int machineLog(const char* fmt, ...) {
     return n;
 }
 
-#include <Bonezegei_XPT2046.h>
-
-#define TS_CS 33
-#define TS_IRQ 32
-Bonezegei_XPT2046 ts(TS_CS, TS_IRQ);
-
 void loop() {
 }
 
 void setup() {
     Serial.begin(115200);
-    ts.begin();
     main();
 }
